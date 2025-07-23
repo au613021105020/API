@@ -1,39 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:untitled1/task%203.dart';
-import 'package:untitled1/tasks%203.dart';
 
-import 'package:untitled1/theme%20controll.dart';
-import 'package:untitled1/we.dart';
-import 'package:untitled1/widget.dart';
-
-import 'Splashscreen.dart';
-import 'home page.dart';
-import 'list.dart';
-
+import 'api/get api/10.dart';
+import 'api/get api/11.dart';
+import 'api/get api/9.dart';
+import 'api/get api/home.dart';
+import 'api/get api/next.dart';
+import 'api/get api/screen.dart';
+import 'api/get api/weather.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return MaterialApp(
-      title: 'Flutter Theme Demo',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      themeMode: themeProvider.currentTheme,
-      home:  Splash()
+      home:DataEntryApp  (),
+
     );
   }
 }
