@@ -18,12 +18,11 @@ class _WeatherState extends State<Weather> {
     final city = _cityController.text.trim();
     if (city.isEmpty) return;
 
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
 
     final url = Uri.parse(
-        "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=94d0003c9da942cd5cb1d42ce5e075d3");
+      "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=94d0003c9da942cd5cb1d42ce5e075d3",
+    );
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -126,7 +125,7 @@ class _WeatherState extends State<Weather> {
                     ],
                   )
                 else
-                  const Text("No data available"),
+                  const Text("No service available"),
               ],
             ),
           ),
@@ -135,6 +134,3 @@ class _WeatherState extends State<Weather> {
     );
   }
 }
-
-
-

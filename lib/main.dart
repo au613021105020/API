@@ -1,12 +1,8 @@
+import 'package:apiprooductspage/api/get%20api/crud.dart';
+import 'package:apiprooductspage/api/get%20api/weather.dart';
 import 'package:flutter/material.dart';
-
-import 'api/get api/10.dart';
-import 'api/get api/11.dart';
-import 'api/get api/9.dart';
 import 'api/get api/home.dart';
-import 'api/get api/next.dart';
-import 'api/get api/screen.dart';
-import 'api/get api/weather.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -15,13 +11,13 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'FakeStore Demo',
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
       debugShowCheckedModeBanner: false,
-      home:DataEntryApp  (),
+      home:DataEntryApp(),
 
     );
   }

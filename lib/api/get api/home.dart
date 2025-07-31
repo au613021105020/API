@@ -1,149 +1,168 @@
+import 'package:apiprooductspage/models/product.dart';
+import 'package:apiprooductspage/services/api.dart';
+import 'package:apiprooductspage/widgets/product.dart';
 import 'package:flutter/material.dart';
-import 'package:manu/api/get%20api/screen.dart';
-import '../data/product_data.dart';
-import '../models/product_model.dart';
 
-
-class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({super.key});
+    class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<ProductListScreen> createState() => _ProductListScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _ProductListScreenState extends State<ProductListScreen> {
-  List<Product> filteredList = List.from(productList);
-  TextEditingController searchController = TextEditingController();
+class _HomeScreenState extends State<HomeScreen> {
+  List<Product> allProducts = [];
+  List<Product> featuredProducts = [];
+  List<Product> filteredProducts = [];
+  String selectedCategory = 'all';
+  String searchQuery = '';
 
-  void updateSearch(String query) {
+  final List<String> categories = [
+    'all',
+    'electronics',
+    'jewelery',
+    "men's clothing",
+    "women's clothing"
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    loadProducts();
+  }
+
+  void loadProducts() async {
+    final products = await ApiService.fetchProducts();
     setState(() {
-      filteredList = productList
-          .where((p) => p.title.toLowerCase().contains(query.toLowerCase()))
+      allProducts = products;
+
+      featuredProducts = categories
+          .where((c) => c != 'all')
+          .map((category) => products.firstWhere(
+            (p) => p.category == category,
+        orElse: () => Product.empty(),
+      ))
+          .toList();
+
+      filterByCategory(selectedCategory);
+    });
+  }
+
+  void filterByCategory(String category) {
+    setState(() {
+      selectedCategory = category;
+      List<Product> baseList = (category == 'all')
+          ? allProducts
+          : allProducts.where((p) => p.category == category).take(3).toList();
+
+      filteredProducts = baseList
+          .where((p) =>
+          p.title.toLowerCase().contains(searchQuery.toLowerCase()))
           .toList();
     });
+  }
+
+  void onSearchChanged(String query) {
+    setState(() {
+      searchQuery = query;
+      filterByCategory(selectedCategory);
+    });
+  }
+
+  Widget buildCategoryButtons() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: categories.map((category) {
+          final isSelected = selectedCategory == category;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
+                foregroundColor: isSelected ? Colors.white : Colors.black,
+              ),
+              onPressed: () => filterByCategory(category),
+              child: Text(
+                category == 'all' ? 'All Products' : category,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Grid'),
-        backgroundColor: Colors.orangeAccent,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.camera_alt),
-            tooltip: 'Camera',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Camera clicked')),
-              );
-            },
+        backgroundColor: Colors.blue,
+        title: TextField(
+          onChanged: onSearchChanged,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Search products...',
+            hintStyle: const TextStyle(color: Colors.white60),
+            border: InputBorder.none,
+            prefixIcon: const Icon(Icons.search, color: Colors.white),
           ),
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            tooltip: 'Scan',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Scan clicked')),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.location_pin),
-            tooltip: 'location',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Scan clicked')),
-              );
-            },
-          ),
+        ),
+        actions: const [
+          Icon(Icons.camera_alt, color: Colors.white),
+          SizedBox(width: 12),
+          Icon(Icons.shopping_cart, color: Colors.white),
+          SizedBox(width: 12),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-            child: TextField(
-              controller: searchController,
-              onChanged: updateSearch,
-              decoration: InputDecoration(
-                hintText: 'Search products...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.black12,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
+      ),
+      body: allProducts.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Featured Products",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 240,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: featuredProducts.length,
+                itemBuilder: (context, index) {
+                  final product = featuredProducts[index];
+                  return SizedBox(
+                    width: 160,
+                    child: ProductCard(product: product, colored: true),
+                  );
+                },
               ),
             ),
-          ),
-        ),
-      ),
-      body: filteredList.isEmpty
-          ? const Center(child: Text("No products found."))
-          : GridView.builder(
-        padding: const EdgeInsets.all(10),
-        itemCount: filteredList.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 0.75,
-        ),
-        itemBuilder: (context, index) {
-          Product p = filteredList[index];
-          return Card(
-            elevation: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailScreen(),
-                        ),
-                      );
-                    },
-                    child: Image.asset(
-                      p.image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            setState(() {
-                              filteredList.removeAt(index);
-                            });
-                          }
-                        });
-                        return const Center(
-                          child: Icon(Icons.delete, color: Colors.red, size: 50),
-                        );
-                      },
-                    ),
-                  ),
+            const SizedBox(height: 16),
+            buildCategoryButtons(),
+            const SizedBox(height: 12),
+            Expanded(
+              child: GridView.builder(
+                itemCount: filteredProducts.length,
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 0.65,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    p.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text("₹${p.price} | ${p.rate} (${p.count})"),
-                ),
-                const SizedBox(height: 4),
-              ],
+                itemBuilder: (context, index) {
+                  return ProductCard(
+                      product: filteredProducts[index], colored: true);
+                },
+              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

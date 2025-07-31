@@ -58,7 +58,7 @@ class _gooState extends State<goo> {
            );
          }
          else{
-           return Text(" no data");
+           return Text(" no serivice");
          }
 
        }),
